@@ -7,7 +7,7 @@ public class DateTime implements IDateTime {
     int minute;
 
    
-    //month/day/year hour:minute
+   
     public DateTime (String dt) // mm/dd/yyyy hh:mm
     {
         dt = dt.trim();
@@ -36,23 +36,24 @@ public class DateTime implements IDateTime {
 
     }
     
-    public DateTime ( int year1, int month1, int day1 , int hour1, int mintue1)
+    public DateTime ( int years, int months, int days , int hours, int minutes)
     {
-        this.year = year1;
+        this.year = years;
 
-        this.month = month1;
-        if (this.month >12  || this.month < 1)
+        this.month = months;
+        if (month < 1 || month > 12)
             this.month = 1;
 
-        this.day = day1;
+}
+        this.day = days;
         if (this.day >31  || this.day < 1)
             this.day = 1;
 
-        this.hour = hour1;
-        if (this.hour >23  || this.hour < 0)
+        this.hour = hours;
+        if (this.hour < 0 || this.hour > 23))
             this.hour = 0;
 
-        this.minute = mintue1;
+        this.minute = minutes;
         if (this.minute > 59  || this.minute < 0)
             this.minute = 0;
     }
