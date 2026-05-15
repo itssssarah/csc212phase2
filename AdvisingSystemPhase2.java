@@ -210,5 +210,133 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 	
 	//===========================================
 
+	
+	  /**
+     * Adds an advisor to the system.
+     *
+     * @param advisor the advisor to add
+     * @return true if added, false if an advisor with the same ID already exists
+     */
+    public boolean addAdvisor(IAdvisor advisor) {
+    	 
+             if ( persons.get(advisor.getId()) == null)
+                 return persons.insert(advisor.getId(), advisor);
+             return false;
+         
+    }
+    
+    
+    
+    /**
+     * Searches for an advisor by ID.
+     * @param advisorId the advisor ID
+     * @return the advisor if found, null otherwise
+     */
+    @Override
+    public IAdvisor searchAdvisorById(int advisorId) {
+
+        IPerson person = persons.get(advisorId);
+
+        if (person != null && person instanceof IAdvisor) {
+            return (IAdvisor) person;
+        }
+
+        return null;
+    }
+
+	
+	
+	/**
+     * Adds a student to the system.
+     * @param student the student to add
+     * @return true if added, false if a student with the same ID already exists
+     */
+	@Override
+	public boolean addStudent(IStudent student) {
+		if (persons.get(student.getId()) == null)
+            return persons.insert(student.getId(), student);
+        return false;
+	}
+
+	@Override
+	public IStudent searchStudentById(int studentId) {
+		   IPerson person = persons.get(studentId);
+
+		    if (person != null && person instanceof IStudent) {
+		        return (IStudent) person;
+		    }
+
+		    return null;
+	}
+//+++++++++++++++++++++++++++++++++++++++++++===
+	@Override
+	public boolean deleteStudent(int studentId) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean addLocation(ILocation location) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public ILocation searchLocationById(int locationId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	
+//==============================================================
+	@Override
+	public int scheduleMeeting(ITimeSlot timeSlot, int advisorId, int studentId) throws SchedulingException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int scheduleWorkshop(String title, ITimeSlot timeSlot, int locationId, int[] advisorIds, int[] studentIds)
+			throws SchedulingException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean cancelMeeting(int meetingId) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean cancelWorkshop(int workshopId) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void addStudentToWorkshop(int workshopId, int studentId) throws SchedulingException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeStudentFromWorkshop(int workshopId, int studentId) throws SchedulingException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void addAdvisorToWorkshop(int workshopId, int advisorId) throws SchedulingException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void removeAdvisorFromWorkshop(int workshopId, int advisorId) throws SchedulingException {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
+
