@@ -2,11 +2,11 @@
 
 //start
 /**
- * Represents a map that stores unique comparable keys with their values.
- * Supports searching, inserting, and deleting operations.
+ * Stores unique keys and their corresponding values using a BST structure.
+ * Allows adding, removing, and retrieving elements efficiently.
  *
- * @param <K> key type
- * @param <T> value type
+ * @param <K> represents the key type
+ * @param <T> represents the stored data type
  */
 public class BSTMap<K extends Comparable<? super K>, T> implements Map<K, T> {
 
