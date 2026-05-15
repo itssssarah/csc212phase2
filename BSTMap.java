@@ -247,3 +247,60 @@ public boolean remove(K key)
     return false;
 }
 
+    /**
+ * Returns the number of comparisons performed while searching for a key.
+ *
+ * @param key key to search for
+ * @return number of key comparisons
+ */
+@Override
+public int nbKeyComp(K key)
+{
+    int comparisons = 0;
+
+    BSTMapNode<K, T> pBstNode = root;
+
+    while (pBstNode != null)
+    {
+        comparisons++;
+
+        if (key.compareTo(pBstNode.key) == 0)
+            break;
+
+        else if (key.compareTo(pBstNode.key) < 0)
+            pBstNode = pBstNode.left;
+
+        else
+            pBstNode = pBstNode.right;
+    }
+
+    return comparisons;
+}
+
+
+/**
+ * Returns all keys sorted in increasing order.
+ *
+ * @return sorted list of keys
+ */
+@Override
+public List<K> getKeys()
+{
+    List<K> keys = new LinkedList<K>();
+
+    private_getKeys(root, keys);
+
+    return keys;
+}
+
+public void private_getKeys(BSTMapNode<K, T> node, List<K> keys)
+{
+    if (node == null)
+        return;
+
+    private_getKeys(node.left, keys);
+
+    keys.insert(node.key);
+
+    private_getKeys(node.right, keys);
+}
