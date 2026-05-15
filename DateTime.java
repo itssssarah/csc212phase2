@@ -8,29 +8,29 @@ public class DateTime implements IDateTime {
 
    
    
-    public DateTime (String dt) // mm/dd/yyyy hh:mm
+    public DateTime (String date) // mm/dd/yyyy hh:mm
     {
-        dt = dt.trim();
-        int first_S  = dt.indexOf('/');
-        int second_S  = dt.lastIndexOf('/');
-        int space = dt.lastIndexOf(' ');
-        int first_dots = dt.indexOf(':');
+        date = date.trim();
+        int firstSlash  = date.indexOf('/');
+        int secondSlash  = date.lastIndexOf('/');
+        int space = date.lastIndexOf(' ');
+        int first_dots = date.indexOf(':');
                 
-        this.month = Integer.parseInt(dt.substring(0,first_S));
+        this.month = Integer.parseInt(date.substring(0,firstSlash));
         if (this.month >12  || this.month < 1)
             this.month = 1;
             
-        this.day = Integer.parseInt(dt.substring(first_S+1, second_S));
+        this.day = Integer.parseInt(date.substring(firstSlash+1, secondSlash));
         if (this.day >31  || this.day < 1)
             this.day = 1;
 
-        this.year = Integer.parseInt(dt.substring( second_S+1, space));
+        this.year = Integer.parseInt(date.substring( secondSlash+1, space));
 
-        this.hour = Integer.parseInt(dt.substring( space+1 , first_dots));
+        this.hour = Integer.parseInt(date.substring( space+1 , first_dots));
         if (this.hour >23  || this.hour < 0)
             this.hour = 0;
 
-        this.minute = Integer.parseInt(dt.substring( first_dots+1));
+        this.minute = Integer.parseInt(date.substring( first_dots+1));
         if (this.minute > 59  || this.minute < 0)
             this.minute = 0;
 
