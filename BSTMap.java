@@ -167,3 +167,83 @@ public boolean update(K key, T e)
 
     return false;
 }
+
+/**
+ * Removes the entry associated with the given key.
+ *
+ * @param key the key to remove
+ * @return true if key was found and removed, otherwise false
+ */
+@Override
+public boolean remove(K key)
+{
+    // search for key
+    K targetKey = key;
+
+    BSTMapNode<K, T> p = root;
+    BSTMapNode<K, T> q = null;
+
+    while (p != null)
+    {
+        if (targetKey.compareTo(p.key) < 0)
+        {
+            q = p;
+            p = p.left;
+        }
+
+        else if (targetKey.compareTo(p.key) > 0)
+        {
+            q = p;
+            p = p.right;
+        }
+
+        else
+        {
+            // key found
+
+            if ((p.left != null) && (p.right != null))
+            {
+                // node has two children
+
+                BSTMapNode<K, T> min = p.right;
+                q = p;
+
+                while (min.left != null)
+                {
+                    q = min;
+                    min = min.left;
+                }
+
+                p.key = min.key;
+                p.data = min.data;
+
+                targetKey = min.key;
+                p = min;
+            }
+
+            if (p.left != null)
+                p = p.left;
+
+            else
+                p = p.right;
+
+            if (q == null)
+                root = p;
+
+            else
+            {
+                if (targetKey.compareTo(q.key) < 0)
+                    q.left = p;
+
+                else
+                    q.right = p;
+            }
+
+            count--;
+            return true;
+        }
+    }
+
+    return false;
+}
+
