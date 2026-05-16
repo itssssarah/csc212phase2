@@ -262,11 +262,112 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 		    return null;
 	}
 //+++++++++++++++++++++++++++++++++++++++++++===
-	@Override
-	public boolean deleteStudent(int studentId) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
+	// Deletes a student and updates all related workshop and meeting data.
+//
+// Effects:
+// - meetings related to the student are removed
+// - the student is removed from workshops
+// - empty workshops are deleted
+//
+// @param studentId student identifier
+// @return true if the student existed and was deleted,
+// otherwise returns false
+
+// Deletes a student and updates all related workshop and meeting data.
+//
+// Effects:
+// - meetings related to the student are removed
+// - the student is removed from workshops
+// - empty workshops are deleted
+//
+// @param studentId student identifier
+// @return true if the student existed and was deleted,
+// otherwise returns false
+
+@Override
+public boolean deleteStudent(int studentId)
+{
+    IStudent studentObject = (IStudent) persons.get(studentId);
+
+    if (studentObject == null)
+        return false;
+
+    ISchedule studentSchedule = studentObject.getSchedule();
+
+    if (!studentSchedule.empty())
+    {
+        List<Integer> eventIds = studentSchedule.getEventIds().getKeys();
+
+        if (!eventIds.empty())
+            eventIds.findFirst();
+
+        while (!eventIds.empty())
+        {
+            IEvent updatedEvent = events.get(eventIds.retrieve());
+
+            updatedEvent.getParticipantIds().remove(studentId);
+
+            if (updatedEvent instanceof Meeting)
+            {
+                events.remove(eventIds.retrieve());
+
+                Integer advisorId = ((Meeting) updatedEvent).getAdvisorId();
+
+                IAdvisor advisorObject = (Advisor) persons.get(advisorId);
+
+                advisorObject.getSchedule().remove(eventIds.retrieve());
+
+                persons.update(advisorId, advisorObject);
+            }
+
+            if (updatedEvent instanceof Workshop
+                    && updatedEvent.getParticipantIds().size() == 0)
+            {
+                events.remove(eventIds.retrieve());
+
+                // remove workshop from advisor schedules
+                List<Integer> advisorIds =
+                        ((Workshop) updatedEvent).getAdvisorIds().getKeys();
+
+                if (!advisorIds.empty())
+                    advisorIds.findFirst();
+
+                while (!advisorIds.empty())
+                {
+                    IAdvisor advisorObject =
+                            (Advisor) persons.get(advisorIds.retrieve());
+
+                    advisorObject.getSchedule().remove(eventIds.retrieve());
+
+                    persons.update(advisorIds.retrieve(), advisorObject);
+
+                    advisorIds.remove();
+                }
+
+                // remove workshop from location schedule
+                ILocation locationObject =
+                        locations.get(updatedEvent.getLocation().getId());
+
+                locationObject.getSchedule().remove(updatedEvent.getId());
+
+                locations.update(updatedEvent.getLocation().getId(),
+                        locationObject);
+            }
+
+            if ((updatedEvent instanceof Workshop)
+                    && (updatedEvent.getParticipantIds().size() > 0))
+
+                events.update(updatedEvent.getId(), updatedEvent);
+
+            eventIds.remove();
+        }
+    }
+
+    persons.remove(studentObject.getId());
+
+    return true;
+}
 //++++++++++++++++++++++++++++++++++++++++++
 	@Override
 	public boolean addLocation(ILocation location) {
