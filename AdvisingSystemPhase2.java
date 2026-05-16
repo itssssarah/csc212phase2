@@ -280,37 +280,212 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 
 	@Override
 	public ILocation searchLocationById(int locationId) {
-		// TODO Auto-generated method stub
-		return null;
+		  return locations.get(locationId);
 	}
 	
 	
 //==============================================================
+
+	
+// Schedules a meeting between one advisor and one student.
+// The meeting location will be the advisor office.
+//
+// Conditions:
+// - both advisor and student must exist
+// - there must be no time conflict for either one
+//
+// @param timeSlot meeting time slot
+// @param advisorId advisor identifier
+// @param studentId student identifier
+// @return ID of the scheduled meeting
+// @throws SchedulingException if scheduling is unsuccessful
+	
 	@Override
 	public int scheduleMeeting(ITimeSlot timeSlot, int advisorId, int studentId) throws SchedulingException {
-		// TODO Auto-generated method stub
-		return 0;
+
+{
+    IPerson studentPerson = this.searchStudentById(studentId);
+    IPerson advisorPerson = this.searchAdvisorById(advisorId);
+
+    if (studentPerson == null)
+        throw new SchedulingException(ScheduleFailureReason.STUDENT_NOT_FOUND);
+
+    if (advisorPerson == null)
+        throw new SchedulingException(ScheduleFailureReason.ADVISOR_NOT_FOUND);
+
+    if (persons.get(studentId).getSchedule().conflicts(timeSlot))
+        throw new SchedulingException(ScheduleFailureReason.CONFLICT_STUDENT);
+
+    if (persons.get(advisorId).getSchedule().conflicts(timeSlot))
+        throw new SchedulingException(ScheduleFailureReason.CONFLICT_ADVISOR);
+
+    // add meeting to student schedule
+    ISchedule studentSchedule = studentPerson.getSchedule();
+    studentSchedule.add(event_counter, timeSlot);
+    persons.update(studentId, studentPerson);
+
+    // add meeting to advisor schedule
+    ISchedule advisorSchedule = advisorPerson.getSchedule();
+    advisorSchedule.add(event_counter, timeSlot);
+    persons.update(advisorId, advisorPerson);
+
+    // create and store meeting event
+    IMeeting meeting = new Meeting(event_counter++, timeSlot,
+            ((Advisor) advisorPerson).getOffice(),
+            advisorId, studentId);
+
+    events.insert(meeting.getId(), meeting);
+
+    return meeting.getId();
+}
 	}
 
-	@Override
-	public int scheduleWorkshop(String title, ITimeSlot timeSlot, int locationId, int[] advisorIds, int[] studentIds)
-			throws SchedulingException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	// Schedules a workshop for multiple students and advisors in one location.
+//
+// Conditions:
+// - all students and advisors must exist
+// - the location must exist and be reservable
+// - there must be no schedule conflicts
+// - the location should not already be occupied
+//
+// @param title workshop title
+// @param timeSlot workshop time slot
+// @param locationId location identifier
+// @param advisorIds advisor identifiers
+// @param studentIds student identifiers
+// @return ID of the created workshop
+// @throws SchedulingException if scheduling fails
 
-	@Override
-	public boolean cancelMeeting(int meetingId) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+@Override
+public int scheduleWorkshop(String title, ITimeSlot timeSlot, int locationId,
+                     int[] advisorIds, int[] studentIds)
+        throws SchedulingException
+{
 
+    for (int index = 0; index < studentIds.length; index++)
+    {
+        IPerson studentPerson = this.searchStudentById(studentIds[index]);
+
+        if (studentPerson == null)
+            throw new SchedulingException(ScheduleFailureReason.STUDENT_NOT_FOUND);
+
+        if (studentPerson.getSchedule().conflicts(timeSlot))
+            throw new SchedulingException(ScheduleFailureReason.CONFLICT_STUDENT);
+    }
+
+    for (int index = 0; index < advisorIds.length; index++)
+    {
+        IPerson advisorPerson = this.searchAdvisorById(advisorIds[index]);
+
+        if (advisorPerson == null)
+            throw new SchedulingException(ScheduleFailureReason.ADVISOR_NOT_FOUND);
+
+        if (advisorPerson.getSchedule().conflicts(timeSlot))
+            throw new SchedulingException(ScheduleFailureReason.CONFLICT_ADVISOR);
+    }
+
+    ILocation location = locations.get(locationId);
+
+    if (location == null)
+        throw new SchedulingException(ScheduleFailureReason.LOCATION_NOT_FOUND);
+
+    if (!location.isReservable())
+        throw new SchedulingException(ScheduleFailureReason.LOCATION_NOT_RESERVABLE);
+
+    if (location.getSchedule().conflicts(timeSlot))
+        throw new SchedulingException(ScheduleFailureReason.CONFLICT_LOCATION);
+
+    if (location.getCapacity() < studentIds.length)
+        throw new SchedulingException(ScheduleFailureReason.CAPACITY_EXCEEDED);
+
+
+    // add workshop to location schedule
+    ISchedule locationSchedule = location.getSchedule();
+
+    locationSchedule.add(event_counter, timeSlot);
+
+    locations.update(locationId, location);
+
+
+    // add workshop to student schedules
+    Set<Integer> studentIdSet = new BSTSet<Integer>();
+
+    for (int index = 0; index < studentIds.length; index++)
+    {
+        studentIdSet.insert(studentIds[index]);
+
+        IStudent studentObject = (Student) persons.get(studentIds[index]);
+
+        studentObject.getSchedule().add(event_counter, timeSlot);
+
+        persons.update(studentIds[index], studentObject);
+    }
+
+    // add workshop to advisor schedules
+    Set<Integer> advisorIdSet = new BSTSet<Integer>();
+
+    for (int index = 0; index < advisorIds.length; index++)
+    {
+        advisorIdSet.insert(advisorIds[index]);
+
+        IAdvisor advisorObject = (Advisor) persons.get(advisorIds[index]);
+
+        advisorObject.getSchedule().add(event_counter, timeSlot);
+
+        persons.update(advisorIds[index], advisorObject);
+    }
+
+    IWorkshop workshop = new Workshop(event_counter++, title,
+            timeSlot, location, advisorIdSet, studentIdSet);
+
+    events.insert(workshop.getId(), workshop);
+
+    return workshop.getId();
+}
+	}
+//-----------------------------------
+	
+// Cancels a meeting using its ID.
+//
+// @param meetingId meeting identifier
+// @return true if the meeting was cancelled successfully,
+// otherwise returns false
+
+@Override
+public boolean cancelMeeting(int meetingId)
+{
+    IMeeting meetingObject = (Meeting) events.get(meetingId);
+
+    if ((meetingObject == null) || !(meetingObject instanceof Meeting))
+        return false;
+
+    events.remove(meetingId);
+
+    IPerson studentPerson = persons.get(meetingObject.getStudentId());
+
+    ISchedule studentSchedule = studentPerson.getSchedule();
+
+    studentSchedule.remove(meetingId);
+
+    persons.update(meetingObject.getStudentId(), studentPerson);
+
+    IPerson advisorPerson = persons.get(meetingObject.getAdvisorId());
+
+    ISchedule advisorSchedule = advisorPerson.getSchedule();
+
+    advisorSchedule.remove(meetingId);
+
+    persons.update(meetingObject.getAdvisorId(), advisorPerson);
+
+    return true;
+}
+//-------------------------------------------
 	@Override
 	public boolean cancelWorkshop(int workshopId) {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+//--------------------------------------------
 	@Override
 	public void addStudentToWorkshop(int workshopId, int studentId) throws SchedulingException {
 		// TODO Auto-generated method stub
