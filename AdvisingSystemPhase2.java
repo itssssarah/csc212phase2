@@ -16,9 +16,9 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 
 	
 	
-	/**
-     * Returns all advisors in the system.
-     */
+	
+     // Returns all advisors in the system.
+    
 	@Override
 	public Set<IAdvisor> getAdvisors() {
 		
@@ -49,9 +49,8 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 	    return advisors;
 	}
 	
-	/**
-     * Returns all students in the system.
-     */
+     // Returns all students in the system.
+    
 	@Override
 	public Set<IStudent> getStudents() {
 		
@@ -83,9 +82,9 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 }
 
 	
-	/**
-     * Returns all locations in the system.
-     */
+	
+     // Returns all locations in the system.
+     
 	@Override
 	public Set<ILocation> getLocations() {
 
@@ -114,9 +113,9 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 	}
 
 	
-	/**
-     * Returns all meetings in the system.
-     */
+	
+     // Returns all meetings in the system.
+     
 	@Override
 	public Set<IMeeting> getMeetings() {
 	    Set<IMeeting> meetings = new BSTSet<IMeeting>();
@@ -268,7 +267,7 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+//++++++++++++++++++++++++++++++++++++++++++
 	@Override
 	public boolean addLocation(ILocation location) {
 		  if (locations.get(location.getId()) == null)
@@ -633,20 +632,89 @@ public void removeStudentFromWorkshop(int workshopId, int studentId)
 
         events.update(workshopEvent.getId(), workshopEvent);
     }
-}//wrong
+}// i think wrong
 	
+//======
+	// Adds an advisor to a workshop.
+//
+// Conditions:
+// - both advisor and workshop must exist
+// - the advisor must not already be added
+// - there must be no schedule conflict
+//
+// @param workshopId workshop identifier
+// @param advisorId advisor identifier
+// @throws SchedulingException if adding fails
 
-	@Override
-	public void addAdvisorToWorkshop(int workshopId, int advisorId) throws SchedulingException {
-		// TODO Auto-generated method stub
-		
-	}
+@Override
+public void addAdvisorToWorkshop(int workshopId, int advisorId)
+        throws SchedulingException
+{
+    IAdvisor advisorObject = this.searchAdvisorById(advisorId);
 
-	@Override
-	public void removeAdvisorFromWorkshop(int workshopId, int advisorId) throws SchedulingException {
-		// TODO Auto-generated method stub
-		
-	}
+    if (advisorObject == null)
+        throw new SchedulingException(ScheduleFailureReason.ADVISOR_NOT_FOUND);
+
+    IEvent workshopEvent = events.get(workshopId);
+
+    if (workshopEvent == null)
+        throw new SchedulingException(ScheduleFailureReason.EVENT_NOT_FOUND);
+
+    ISchedule advisorSchedule = advisorObject.getSchedule();
+
+    if (advisorSchedule.contains(workshopId) == true)
+        throw new SchedulingException(ScheduleFailureReason.CONFLICT_ADVISOR);
+
+    if (advisorSchedule.conflicts(workshopEvent.getTimeSlot()))
+        throw new SchedulingException(ScheduleFailureReason.CONFLICT_ADVISOR);
+
+    advisorObject.getSchedule().add(workshopEvent.getId(),
+            workshopEvent.getTimeSlot());
+
+    persons.update(advisorId, advisorObject);
+
+    ((Workshop) workshopEvent).getAdvisorIds().insert(advisorId);
+
+    events.update(advisorId, workshopEvent);
+}
+//--------------------------
+	// Removes an advisor from a workshop.
+//
+// Conditions:
+// - both advisor and workshop must exist
+// - the advisor must already be part of the workshop
+//
+// @param workshopId workshop identifier
+// @param advisorId advisor identifier
+// @throws SchedulingException if removal fails
+
+@Override
+public void removeAdvisorFromWorkshop(int workshopId, int advisorId)
+        throws SchedulingException
+{
+    IAdvisor advisorObject = this.searchAdvisorById(advisorId);
+
+    if (advisorObject == null)
+        throw new SchedulingException(ScheduleFailureReason.ADVISOR_NOT_FOUND);
+
+    IEvent workshopEvent = events.get(workshopId);
+
+    if (workshopEvent == null)
+        throw new SchedulingException(ScheduleFailureReason.EVENT_NOT_FOUND);
+
+    ISchedule advisorSchedule = advisorObject.getSchedule();
+
+    if (!advisorSchedule.contains(workshopId))
+        throw new SchedulingException(ScheduleFailureReason.EVENT_NOT_FOUND);
+
+    advisorObject.getSchedule().remove(workshopEvent.getId());
+
+    persons.update(advisorId, advisorObject);
+
+    ((Workshop) workshopEvent).getAdvisorIds().remove(advisorId);
+
+    events.update(workshopId, workshopEvent);
+}
 
 }
 
