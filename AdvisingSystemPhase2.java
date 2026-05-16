@@ -537,17 +537,104 @@ public boolean cancelWorkshop(int workshopId)
 }
 	}
 //--------------------------------------------
-	@Override
-	public void addStudentToWorkshop(int workshopId, int studentId) throws SchedulingException {
-		// TODO Auto-generated method stub
+		// Adds a student to an existing workshop.
+//
+// Conditions:
+// - both workshop and student must exist
+// - the student must not already be added
+// - there must be no schedule conflict
+// - workshop capacity must not be exceeded
+//
+// @param workshopId workshop identifier
+// @param studentId student identifier
+// @throws SchedulingException if adding the student fails
+
+@Override
+public void addStudentToWorkshop(int workshopId, int studentId) 
+	throws SchedulingException //no color
+{
+    IStudent studentObject = this.searchStudentById(studentId);
+
+    if (studentObject == null)
+        throw new SchedulingException(ScheduleFailureReason.STUDENT_NOT_FOUND);
+
+    IEvent workshopEvent = events.get(workshopId);
+
+    if (workshopEvent == null)
+        throw new SchedulingException(ScheduleFailureReason.EVENT_NOT_FOUND);
+
+    ISchedule studentSchedule = studentObject.getSchedule();
+
+    if (studentSchedule.contains(workshopId) == true)
+        throw new SchedulingException(ScheduleFailureReason.CONFLICT_STUDENT);
+
+    if (studentSchedule.conflicts(workshopEvent.getTimeSlot()))
+        throw new SchedulingException(ScheduleFailureReason.CONFLICT_STUDENT);
+
+    if (workshopEvent.getLocation().getCapacity()
+            < workshopEvent.getParticipantIds().size() + 1)
+
+        throw new SchedulingException(ScheduleFailureReason.CAPACITY_EXCEEDED);
+
+    studentObject.getSchedule().add(workshopEvent.getId(),
+            workshopEvent.getTimeSlot());
+
+    persons.update(studentId, studentObject);
+
+    workshopEvent.getParticipantIds().insert(studentId);
+
+    events.update(workshopId, workshopEvent);
+}
 		
 	}
 
-	@Override
-	public void removeStudentFromWorkshop(int workshopId, int studentId) throws SchedulingException {
-		// TODO Auto-generated method stub
-		
-	}
+
+		// Removes a student from a workshop.
+//
+// Conditions:
+// - both student and workshop must exist
+// - the student must already be part of the workshop
+// - if no participants remain, the workshop is cancelled
+//
+// @param workshopId workshop identifier
+// @param studentId student identifier
+// @throws SchedulingException if removal fails
+
+@Override
+public void removeStudentFromWorkshop(int workshopId, int studentId)
+        throws SchedulingException
+{
+    IStudent studentObject = this.searchStudentById(studentId);
+
+    if (studentObject == null)
+        throw new SchedulingException(ScheduleFailureReason.STUDENT_NOT_FOUND);
+
+    IEvent workshopEvent = events.get(workshopId);
+
+    if (workshopEvent == null)
+        throw new SchedulingException(ScheduleFailureReason.EVENT_NOT_FOUND);
+
+    ISchedule studentSchedule = studentObject.getSchedule();
+
+    if (!studentSchedule.contains(workshopId))
+        throw new SchedulingException(ScheduleFailureReason.EVENT_NOT_FOUND);
+
+    if (workshopEvent.getParticipantIds().size() == 1)
+
+        this.cancelWorkshop(workshopId);
+
+    else
+    {
+        studentObject.getSchedule().remove(workshopEvent.getId());
+
+        persons.update(studentId, studentObject);
+
+        workshopEvent.getParticipantIds().remove(studentId);
+
+        events.update(workshopEvent.getId(), workshopEvent);
+    }
+}//wrong
+	
 
 	@Override
 	public void addAdvisorToWorkshop(int workshopId, int advisorId) throws SchedulingException {
