@@ -211,12 +211,10 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 	//===========================================
 
 	
-	  /**
-     * Adds an advisor to the system.
-     *
-     * @param advisor the advisor to add
-     * @return true if added, false if an advisor with the same ID already exists
-     */
+	// Adds a new advisor to the system.
+// Returns true if the advisor was added successfully,
+// otherwise returns false if the advisor ID already exists.
+	
     public boolean addAdvisor(IAdvisor advisor) {
     	 
              if ( persons.get(advisor.getId()) == null)
@@ -227,11 +225,9 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
     
     
     
-    /**
-     * Searches for an advisor by ID.
-     * @param advisorId the advisor ID
-     * @return the advisor if found, null otherwise
-     */
+  // Finds an advisor using the advisor ID.
+// Returns the advisor object if it exists, otherwise returns null.
+	
     @Override
     public IAdvisor searchAdvisorById(int advisorId) {
 
@@ -246,11 +242,11 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 
 	
 	
-	/**
-     * Adds a student to the system.
-     * @param student the student to add
-     * @return true if added, false if a student with the same ID already exists
-     */
+// Adds a new student to the system.
+// Returns true if the student was added successfully,
+// otherwise returns false if the ID already exists.
+
+	
 	@Override
 	public boolean addStudent(IStudent student) {
 		if (persons.get(student.getId()) == null)
@@ -277,8 +273,9 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
 
 	@Override
 	public boolean addLocation(ILocation location) {
-		// TODO Auto-generated method stub
-		return false;
+		  if (locations.get(location.getId()) == null)
+                return locations.insert(location.getId(), location);
+            return false;
 	}
 
 	@Override
