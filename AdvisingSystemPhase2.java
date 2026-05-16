@@ -223,8 +223,6 @@ public class AdvisingSystemPhase2 implements IAdvisingSystemPhase2 {
          
     }
     
-    
-    
   // Finds an advisor using the advisor ID.
 // Returns the advisor object if it exists, otherwise returns null.
 	
@@ -480,10 +478,63 @@ public boolean cancelMeeting(int meetingId)
     return true;
 }
 //-------------------------------------------
-	@Override
-	public boolean cancelWorkshop(int workshopId) {
-		// TODO Auto-generated method stub
-		return false;
+	
+// Cancel a workshop using its ID.
+//
+// @param workshopId workshop identifier
+// @return true if the workshop was removed successfully,
+// otherwise returns false
+
+@Override
+public boolean cancelWorkshop(int workshopId)
+{
+    IWorkshop workshopObject = (Workshop) events.get(workshopId);
+
+    if ((workshopObject == null) || !(workshopObject instanceof Workshop))
+        return false;
+
+    List<Integer> studentIds = workshopObject.getStudentIds().getKeys();
+
+    if (!studentIds.empty())
+        studentIds.findFirst();
+
+    while (!studentIds.empty())
+    {
+        IPerson studentPerson = persons.get(studentIds.retrieve());
+
+        studentPerson.getSchedule().remove(workshopId);
+
+        persons.update(studentPerson.getId(), studentPerson);
+
+        studentIds.remove();
+    }
+
+    List<Integer> advisorIds = workshopObject.getAdvisorIds().getKeys();
+
+    if (!advisorIds.empty())
+        advisorIds.findFirst();
+
+    while (!advisorIds.empty())
+    {
+        IPerson advisorPerson = persons.get(advisorIds.retrieve());
+
+        advisorPerson.getSchedule().remove(workshopId);
+
+        persons.update(advisorPerson.getId(), advisorPerson);
+
+        advisorIds.remove();
+    }
+
+    ILocation locationObject = locations.get(workshopObject.getLocation().getId());
+
+    locationObject.getSchedule().remove(workshopId);
+
+    locations.update(locationObject.getId(), locationObject);
+
+    events.remove(workshopId);
+
+    return true;
+}
 	}
 //--------------------------------------------
 	@Override
